@@ -1,0 +1,20 @@
+Metadata-Version: 2.4
+Name: VSU
+Version: 0.1.0
+Summary: my first toml-file
+Requires-Python: >=3.12
+Description-Content-Type: text/markdown
+Requires-Dist: fastapi
+
+# Project "Реализация атаки методом повышения приоритетов"
+
+# Зависимости
+- python3
+- pip + venv
+
+# Сборка
+```sh
+$ python3 -m venv venv
+$ .venv/bin/pip install .
+$ .venv/bin/python main.py
+```

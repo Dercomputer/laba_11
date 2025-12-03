@@ -1,5 +1,5 @@
 [project]
-name = "Attack Priority"
+name = "VSU"
 version = "0.1.0"
 description = "my first toml-file"
 readme = "README.md"
