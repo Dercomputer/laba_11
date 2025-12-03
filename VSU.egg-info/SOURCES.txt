@@ -1,8 +1,0 @@
-README.md
-main.py
-pyproject.toml
-VSU.egg-info/PKG-INFO
-VSU.egg-info/SOURCES.txt
-VSU.egg-info/dependency_links.txt
-VSU.egg-info/requires.txt
-VSU.egg-info/top_level.txt
