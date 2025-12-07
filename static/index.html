@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Атака методом повышения привилегий</title>
+    <link rel="stylesheet" href="/static/index.css">
+</head>
+<body>
+    <header>
+        <h1>Обучающий форум</h1>
+        <div class="auth-container">
+            <button id="auth-toggle-btn" class="auth-btn">Войти / Регистрация</button>
+
+            <div id="auth-dropdown" class="auth-dropdown hidden">
+                <div class="auth-form-group">
+                    <label for="username">Имя пользователя:</label>
+                    <input type="text" id="username" name="username">
+                </div>
+                <div class="auth-form-group">
+                    <label for="password">Пароль:</label>
+                    <input type="password" id="password" name="password">
+                </div>
+                <button onclick="handleAuth('login')">Войти</button>
+                <button onclick="handleAuth('register')">Зарегистрироваться</button>
+            </div>
+        </div>
+    </header>
+
+    <div class="centered-content">
+        <main id="messages-container">
+        </main>
+
+        <footer>
+            <form id="message-form">
+                <textarea id="message-input" placeholder="Напишите ваше сообщение здесь..." required></textarea>
+                <button type="submit">Отправить сообщение</button>
+            </form>
+        </footer>
+    </div>
+
+    <script src="/static/index.js"></script>
+</body>
+</html>
