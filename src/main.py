@@ -17,7 +17,7 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 async def root():
     user = User()
 
-    return FileResponse("static/index.html")
+    return FileResponse("../static/index.html")
 
 
 @app.get("/show")

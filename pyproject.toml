@@ -6,3 +6,6 @@ readme = "README.md"
 requires-python = ">=3.12"
 authors = [{name = 'Tafincev Dmitry', email = 'tafincev05@gmail.com'}]
 dependencies = ['fastapi[standard]']
+
+[tool.setuptools]
+package-dir = {"" = "src"}
