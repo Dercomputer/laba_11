@@ -1,246 +1,229 @@
-document.addEventListener('DOMContentLoaded', () => {
-    // ⚙️ Основные константы и переменные
-    const API_URL = '';
-    let currentAuthorName = 'Гость';
-    let targetMessageContent = null;
+// Глобальная переменная для хранения текущего пользователя
+let currentUsername = "Guest";
+const currentUserElement = document.getElementById('current-user');
 
-    // 🎯 Элементы DOM
-    const authToggleBtn = document.getElementById('auth-toggle-btn');
-    const authDropdown = document.getElementById('auth-dropdown');
-    const messagesContainer = document.getElementById('messages-container');
-    const messageForm = document.getElementById('message-form');
-    const messageInput = document.getElementById('message-input');
+// --- Вспомогательные функции ---
 
-    // 🆕 Элементы для МОДАЛЬНОГО ОКНА УДАЛЕНИЯ
-    const deleteModal = document.getElementById('delete-modal');
-    const closeModalBtn = document.getElementById('close-modal');
-    const messageToDeleteText = document.getElementById('message-to-delete-text');
-    const modalConfirmDeleteBtn = document.getElementById('modal-confirm-delete-btn');
-    const modalCancelDeleteBtn = document.getElementById('modal-cancel-delete-btn');
-    const modalDeleteUsernameInput = document.getElementById('modal-delete-username');
-    const modalDeletePasswordInput = document.getElementById('modal-delete-password');
+/**
+ * Обновляет отображаемое имя текущего пользователя.
+ * @param {string} username - Имя пользователя.
+ */
+function updateCurrentUser(username) {
+    currentUsername = username;
+    currentUserElement.textContent = username;
+    // Очистка сообщений формы при смене пользователя
+    document.getElementById('auth-message').textContent = '';
+    document.getElementById('send-message').textContent = '';
+    document.getElementById('change-message').textContent = '';
+    document.getElementById('delete-message').textContent = '';
+}
 
-    // ------------------------------------
-    // 🖋️ Вспомогательные функции
-    // ------------------------------------
-
-    function updateCurrentAuthorName() {
-        const btnText = authToggleBtn.textContent.trim();
-        if (btnText.startsWith('Привет,')) {
-            currentAuthorName = btnText.replace('Привет,', '').trim().replace('!', '');
-        } else {
-            currentAuthorName = 'Гость';
-        }
-    }
-
-    /** Выделяет сообщение для удаления и показывает модальное окно */
-    function selectMessageForDeletion(messageText, element) {
-        // 1. Сброс предыдущего выбора
-        document.querySelectorAll('.message-card.selected-for-delete').forEach(el => {
-            el.classList.remove('selected-for-delete');
-        });
-
-        // 2. Установка нового выбора
-        targetMessageContent = messageText;
-        element.classList.add('selected-for-delete');
-
-        // 3. Обновление и показ модального окна
-        messageToDeleteText.textContent = messageText;
-        deleteModal.classList.add('visible'); // Используем класс 'visible' для отображения
-        modalConfirmDeleteBtn.disabled = false;
-    }
-
-    /** Скрывает модальное окно и сбрасывает выделение */
-    function hideDeleteModal() {
-        deleteModal.classList.remove('visible');
-        document.querySelectorAll('.message-card.selected-for-delete').forEach(el => {
-            el.classList.remove('selected-for-delete');
-        });
-        targetMessageContent = null;
-        modalDeleteUsernameInput.value = '';
-        modalDeletePasswordInput.value = '';
-        modalConfirmDeleteBtn.disabled = true;
-    }
-
-
-    /** Добавляет сообщение в DOM */
-    function addMessageToDOM(username, message) {
-        const messageCard = document.createElement('div');
-        messageCard.classList.add('message-card');
-
-        // Добавление кликабельности
-        messageCard.addEventListener('click', () => selectMessageForDeletion(message, messageCard));
-
-        const authorSpan = document.createElement('span');
-        authorSpan.classList.add('message-author');
-        authorSpan.textContent = username;
-
-        const messageParagraph = document.createElement('p');
-        messageParagraph.textContent = message;
-
-        messageCard.appendChild(authorSpan);
-        messageCard.appendChild(messageParagraph);
-        messagesContainer.appendChild(messageCard);
-
-        messagesContainer.scrollTop = messagesContainer.scrollHeight;
-    }
-
-    /** Загружает и отображает все сообщения */
-    async function loadMessages() {
-        try {
-            const response = await fetch(`${API_URL}/show`);
-            if (!response.ok) { throw new Error('Ошибка загрузки сообщений'); }
-
-            const messages = await response.json();
-            messagesContainer.innerHTML = '';
-            messages.forEach(msg => {
-                addMessageToDOM(msg.username, msg.message);
-            });
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-        } catch (error) {
-            console.error("Проблема с загрузкой сообщений:", error);
-        }
-    }
-
-    // ------------------------------------
-    // 🚀 Обработчики событий (Listeners)
-    // ------------------------------------
-
-    /** Обработчик отправки сообщения (без изменений) */
-    messageForm.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        // ... (логика отправки, как в предыдущем коде)
-        const messageText = messageInput.value.trim();
-        updateCurrentAuthorName();
-
-        if (messageText) {
-            try {
-                if (currentAuthorName === 'Гость') {
-                    alert('Пожалуйста, войдите или зарегистрируйтесь, чтобы отправить сообщение.');
-                    return;
-                }
-
-                const response = await fetch(`${API_URL}/send`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        username: currentAuthorName,
-                        message: messageText
-                    })
-                });
-
-                if (!response.ok) {
-                    const errData = await response.json();
-                    alert(`Ошибка: ${errData.detail || 'Не удалось отправить сообщение.'}`);
-                    return;
-                }
-
-                const createdMessage = await response.json();
-                addMessageToDOM(createdMessage.username, createdMessage.message);
-                messageInput.value = '';
-
-            } catch (error) {
-                console.error("Ошибка при отправке сообщения:", error);
-                alert('Не удалось отправить сообщение.');
-            }
-        }
+/**
+ * Универсальная функция для отправки POST-запросов.
+ */
+async function postData(url, data) {
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
     });
+    return response;
+}
 
-
-    /** Обработчик подтверждения удаления (изменен на модальные элементы) */
-    modalConfirmDeleteBtn.addEventListener('click', async () => {
-        const deleter_username = modalDeleteUsernameInput.value.trim();
-        const deleter_password = modalDeletePasswordInput.value;
-
-        if (!deleter_username || !deleter_password || !targetMessageContent) {
-            alert("Пожалуйста, введите имя пользователя и пароль и выберите сообщение.");
-            return;
-        }
-
-        try {
-            const response = await fetch(`${API_URL}/delete`, {
-                method: 'DELETE',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    deleter_username: deleter_username,
-                    deleter_password: deleter_password,
-                    target_message: targetMessageContent
-                })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                alert(`Сообщение успешно удалено.`);
-                hideDeleteModal();
-                loadMessages();
-            } else {
-                alert(`Ошибка удаления: ${data.detail || 'Проверьте логин/пароль или права администратора.'}`);
-            }
-
-        } catch (error) {
-            console.error("Ошибка сети при удалении:", error);
-            alert("Не удалось выполнить запрос на удаление.");
-        }
+/**
+ * Универсальная функция для отправки DELETE-запросов.
+ */
+async function deleteData(url, data) {
+     const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
     });
+    return response;
+}
 
-    /** Обработчики скрытия модального окна */
-    modalCancelDeleteBtn.addEventListener('click', hideDeleteModal);
-    closeModalBtn.addEventListener('click', hideDeleteModal);
-
-    // Скрытие модального окна при клике вне его
-    window.addEventListener('click', (event) => {
-        if (event.target === deleteModal) {
-            hideDeleteModal();
-        }
+/**
+ * Универсальная функция для отправки PATCH-запросов.
+ */
+async function patchData(url, data) {
+     const response = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
     });
+    return response;
+}
 
-    /** Переключатель видимости формы авторизации */
-    authToggleBtn.addEventListener('click', () => {
-        authDropdown.classList.toggle('hidden');
-    });
+// --- Обработчики Событий ---
 
-    // ------------------------------------
-    // 🏁 Инициализация
-    // ------------------------------------
-    loadMessages();
-});
-
-
-/** Функция для Login/Register (без изменений) */
-async function handleAuth(type) {
-    // ... (логика handleAuth без изменений)
+async function handleRegister() {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
+    const messageElement = document.getElementById('auth-message');
+    messageElement.textContent = '';
 
-    const endpoint = type === 'login' ? '/login' : '/register';
-    const API_URL = '';
+    try {
+        const response = await postData('/register', { username, password });
+        const result = await response.json();
 
-    if (username && password) {
-        try {
-            const response = await fetch(`${API_URL}${endpoint}`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ username: username, password: password })
-            });
-
-            const data = await response.json();
-
-            if (response.ok) {
-                alert(data.message || 'Успешно!');
-                document.getElementById('auth-dropdown').classList.add('hidden');
-                document.getElementById('auth-toggle-btn').textContent = `Привет, ${username}!`;
-                window.location.reload();
-            } else {
-                alert(`Ошибка: ${data.detail || data.message}`);
-            }
-
-        } catch (error) {
-            console.error(error);
-            alert("Ошибка сети");
+        if (response.ok) {
+            messageElement.textContent = `✅ ${result.message}`;
+        } else {
+            messageElement.textContent = `❌ ${result.detail || result.message}`;
         }
-    } else {
-        alert('Пожалуйста, введите имя пользователя и пароль.');
+    } catch (error) {
+        messageElement.textContent = `❌ Ошибка сети: ${error.message}`;
+    }
+}
+
+async function handleLogin() {
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    const messageElement = document.getElementById('auth-message');
+    messageElement.textContent = '';
+
+    const url = `/login?username=${encodeURIComponent(username)}&password=${encodeURIComponent(password)}`;
+
+    try {
+        const response = await fetch(url);
+        const result = await response.json();
+
+        if (response.ok) {
+            messageElement.textContent = `✅ ${result.message}. Вы вошли как ${username}.`;
+            updateCurrentUser(username);
+        } else {
+            messageElement.textContent = `❌ ${result.detail || result.message}`;
+            updateCurrentUser("Guest");
+        }
+    } catch (error) {
+        messageElement.textContent = `❌ Ошибка сети: ${error.message}`;
+    }
+}
+
+async function handleSend() {
+    const messageText = document.getElementById('message-text').value;
+    const messageElement = document.getElementById('send-message');
+    messageElement.textContent = '';
+
+    if (currentUsername === "Guest") {
+        messageElement.textContent = "❌ Гости не могут писать сообщения. Пожалуйста, войдите.";
+        return;
+    }
+
+    try {
+        const response = await postData('/send', {
+            username: currentUsername,
+            message: messageText
+        });
+        const result = await response.json();
+
+        if (response.ok) {
+            messageElement.textContent = `✅ Сообщение отправлено.`;
+            document.getElementById('message-text').value = '';
+            showMessages();
+        } else {
+            messageElement.textContent = `❌ ${result.detail || result.message}`;
+        }
+    } catch (error) {
+        messageElement.textContent = `❌ Ошибка сети: ${error.message}`;
+    }
+}
+
+async function showMessages() {
+    const container = document.getElementById('messages-container');
+    container.innerHTML = 'Загрузка сообщений...';
+
+    try {
+        const response = await fetch('/show');
+        const messages = await response.json();
+
+        container.innerHTML = '';
+
+        if (messages.length === 0) {
+            container.innerHTML = '<p>Нет сообщений.</p>';
+        } else {
+            messages.forEach(msg => {
+                const div = document.createElement('div');
+                div.className = 'message-item';
+                div.innerHTML = `<strong>${msg.name}</strong>: ${msg.message}`;
+                container.appendChild(div);
+            });
+        }
+    } catch (error) {
+        container.innerHTML = `<p class="error">❌ Ошибка загрузки сообщений: ${error.message}</p>`;
+    }
+}
+
+async function handleDelete() {
+    const targetMessage = document.getElementById('target-message').value;
+    const messageElement = document.getElementById('delete-message');
+    messageElement.textContent = '';
+
+    if (currentUsername === "Guest") {
+        messageElement.textContent = "❌ Гости не могут удалять сообщения. Пожалуйста, войдите.";
+        return;
+    }
+
+    // Запрос пароля для соответствия логике бэкенда.
+    const deleterPassword = prompt(`Введите пароль для ${currentUsername} для подтверждения удаления:`);
+    if (!deleterPassword) {
+        messageElement.textContent = "❌ Пароль не введен. Удаление отменено.";
+        return;
+    }
+
+    try {
+        const response = await deleteData('/delete', {
+            deleter_username: currentUsername,
+            deleter_password: deleterPassword,
+            target_message: targetMessage
+        });
+        const result = await response.json();
+
+        if (response.ok) {
+            messageElement.textContent = `✅ Сообщение успешно удалено. Удалено записей: ${result.count}`;
+            document.getElementById('target-message').value = '';
+            showMessages();
+        } else {
+            messageElement.textContent = `❌ Ошибка удаления: ${result.detail || result.message}`;
+        }
+    } catch (error) {
+        messageElement.textContent = `❌ Ошибка сети: ${error.message}`;
+    }
+}
+
+async function handleChangePassword() {
+    const oldPassword = document.getElementById('change-old-password').value;
+    const newPassword = document.getElementById('change-new-password').value;
+    const messageElement = document.getElementById('change-message');
+    messageElement.textContent = '';
+
+    if (currentUsername === "Guest") {
+        messageElement.textContent = "❌ Смена пароля доступна только для авторизованных пользователей.";
+        return;
+    }
+
+    try {
+        const response = await patchData('/change_password', {
+            username: currentUsername,
+            old_password: oldPassword,
+            new_password: newPassword
+        });
+        const result = await response.json();
+
+        if (response.ok) {
+            messageElement.textContent = `✅ ${result.message}`;
+            document.getElementById('change-old-password').value = '';
+            document.getElementById('change-new-password').value = '';
+        } else {
+            messageElement.textContent = `❌ ${result.detail || result.message}`;
+        }
+    } catch (error) {
+        messageElement.textContent = `❌ Ошибка сети: ${error.message}`;
     }
 }

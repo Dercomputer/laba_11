@@ -2,67 +2,88 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Атака методом повышения привилегий</title>
+    <title>Цветной Чат на FastAPI</title>
     <link rel="stylesheet" href="/static/index.css">
 </head>
 <body>
-    <header>
-        <h1>Обучающий форум</h1>
-        <div class="auth-container">
-            <button id="auth-toggle-btn" class="auth-btn">Войти / Регистрация</button>
+    <div class="main-content-wrapper">
+        <header>
+            <h1>📝Форум</h1>
+            <p>Текущий пользователь: <span id="current-user" class="user-status">Guest</span></p>
+        </header>
 
-            <div id="auth-dropdown" class="auth-dropdown hidden">
-                <div class="auth-form-group">
+        <div class="container">
+            <div class="form-section auth-section">
+                <h2>🔑 Аутентификация</h2>
+                <form id="auth-form">
                     <label for="username">Имя пользователя:</label>
-                    <input type="text" id="username" name="username">
-                </div>
-                <div class="auth-form-group">
+                    <input type="text" id="username" name="username" required>
+
                     <label for="password">Пароль:</label>
-                    <input type="password" id="password" name="password">
-                </div>
-                <button onclick="handleAuth('login')">Войти</button>
-                <button onclick="handleAuth('register')">Зарегистрироваться</button>
+                    <input type="password" id="password" name="password" required>
+
+                    <div class="button-group">
+                        <button type="button" onclick="handleRegister()" class="btn register-btn">Регистрация</button>
+                        <button type="button" onclick="handleLogin()" class="btn login-btn">Войти</button>
+                    </div>
+                </form>
+                <div id="auth-message" class="message error"></div>
+            </div>
+
+            <div class="form-section send-section">
+                <h2>✉️ Отправить Сообщение</h2>
+                <form id="send-form">
+                    <label for="message-text">Сообщение:</label>
+                    <textarea id="message-text" name="message-text" rows="3" required></textarea>
+
+                    <button type="button" onclick="handleSend()" class="btn send-btn">Отправить</button>
+                </form>
+                <div id="send-message" class="message error"></div>
             </div>
         </div>
-    </header>
 
-    <div class="centered-content">
-        <main id="messages-container">
-        </main>
+        <div class="container">
+            <div class="form-section change-section">
+                <h2>🔒 Изменить Пароль</h2>
+                <form id="change-password-form">
+                    <label for="change-old-password">Старый Пароль:</label>
+                    <input type="password" id="change-old-password" required>
 
-        <footer>
-            <form id="message-form">
-                <textarea id="message-input" placeholder="Напишите ваше сообщение здесь..." required></textarea>
-                <button type="submit">Отправить сообщение</button>
-            </form>
-        </footer>
+                    <label for="change-new-password">Новый Пароль:</label>
+                    <input type="password" id="change-new-password" required>
+
+                    <button type="button" onclick="handleChangePassword()" class="btn change-btn">Изменить</button>
+                </form>
+                <div id="change-message" class="message error"></div>
+            </div>
+
+            <div class="form-section delete-section">
+                <h2>🗑️ Удалить Сообщение</h2>
+                <form id="delete-form">
+                    <label for="target-message">Текст сообщения для удаления:</label>
+                    <textarea id="target-message" rows="2" required></textarea>
+                    <p class="small-note">*Для удаления чужого сообщения нужно войти под учетной записью **admin**.</p>
+                    <button type="button" onclick="handleDelete()" class="btn delete-btn">Удалить</button>
+                </form>
+                <div id="delete-message" class="message error"></div>
+            </div>
+        </div>
+
+        <hr class="colorful-hr">
+
+        <div class="message-display-section">
+            <h2>📜 Сообщения</h2>
+            <button onclick="showMessages()" class="btn refresh-btn">Обновить Сообщения</button>
+            <div id="messages-container">
+                <p>Сообщения будут отображены здесь после нажатия "Обновить Сообщения".</p>
+            </div>
+        </div>
     </div>
-    <div id="delete-modal" class="modal hidden">
-    <div class="modal-content">
-        <span id="close-modal" class="close-btn">&times;</span>
-        <h3>Удалить сообщение</h3>
-        <p>Вы выбрали сообщение:</p>
-        <blockquote id="message-to-delete-text"></blockquote>
-
-        <p>Подтвердите свои данные:</p>
-
-        <div class="auth-form-group">
-            <label for="modal-delete-username">Ваше имя:</label>
-            <input type="text" id="modal-delete-username">
-        </div>
-        <div class="auth-form-group">
-            <label for="modal-delete-password">Ваш пароль:</label>
-            <input type="password" id="modal-delete-password">
-        </div>
-
-        <div class="modal-actions">
-            <button id="modal-confirm-delete-btn" disabled>Подтвердить удаление</button>
-            <button id="modal-cancel-delete-btn">Отмена</button>
-        </div>
-    </div>
-</div>
 
     <script src="/static/index.js"></script>
+    <script>
+        // Инициализация при загрузке страницы
+        window.onload = showMessages;
+    </script>
 </body>
 </html>

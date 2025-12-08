@@ -1,5 +1,5 @@
 import os
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Query
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
@@ -77,14 +77,12 @@ async def register(user: User):
         raise HTTPException(status_code=400, detail=result.get("message"))
     return result
 
-
 @app.get("/login")
-async def login(user: User):
-    result = login_user(user.username, user.password)
+async def login(username: str = Query(..., alias="username"), password: str | None = Query(None, alias="password")):
+    result = login_user(username, password)
     if not result.get("success"):
         raise HTTPException(status_code=401, detail=result.get("message"))
     return result
-
 
 @app.post("/send")
 async def send_message(message: Message):
