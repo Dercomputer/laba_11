@@ -178,3 +178,95 @@ footer {
     background-color: #95a5a6;
     color: white;
 }
+/* index.css */
+
+/* --- Модальное окно (Удаление) --- */
+.modal {
+    display: none; /* Скрыто по умолчанию */
+    position: fixed;
+    z-index: 100; /* Поверх всего */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.6); /* Темный фон */
+}
+
+.modal.visible {
+    display: block;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 10% auto; /* Центрирование */
+    padding: 20px;
+    border: 1px solid #888;
+    width: 90%;
+    max-width: 500px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h3 {
+    border-bottom: 2px solid #e74c3c;
+    padding-bottom: 10px;
+    color: #34495e;
+}
+
+#message-to-delete-text {
+    background: #ecf0f1;
+    border-left: 5px solid #e74c3c;
+    margin: 10px 0;
+    padding: 10px 15px;
+    font-style: italic;
+    white-space: pre-wrap; /* Сохраняет форматирование сообщения */
+}
+
+.close-btn {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close-btn:hover,
+.close-btn:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+.modal-actions {
+    text-align: right;
+    margin-top: 20px;
+}
+
+#modal-confirm-delete-btn {
+    background-color: #e74c3c;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+}
+
+#modal-cancel-delete-btn {
+    background-color: #bdc3c7;
+    color: #333;
+    padding: 10px 20px;
+    border-radius: 5px;
+}
+
+.auth-form-group input {
+    width: 100%;
+    box-sizing: border-box;
+    margin-bottom: 10px;
+}
+
+/* Удаляем старые стили для #delete-controls, если они были */
+.delete-controls { display: none !important; }
+
+/* Стиль для выделения выбранного сообщения */
+.message-card.selected-for-delete {
+    border: 2px solid #e74c3c; /* Красная рамка */
+    background-color: #fdedec;
+    box-shadow: 0 0 5px rgba(231, 76,
